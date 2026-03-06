@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>FPS Mobile</title>
+
+<style>
+
+body{
+margin:0;
+overflow:hidden;
+background:#87ceeb;
+touch-action:none;
+font-family:Arial;
+}
+
+#crosshair{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:28px;
+color:white;
+}
+
+#hud{
+position:absolute;
+top:10px;
+left:10px;
+color:white;
+font-size:16px;
+}
+
+#joystick{
+position:absolute;
+bottom:80px;
+left:40px;
+width:120px;
+height:120px;
+background:rgba(0,0,0,0.3);
+border-radius:50%;
+}
+
+#stick{
+position:absolute;
+width:60px;
+height:60px;
+background:white;
+border-radius:50%;
+left:30px;
+top:30px;
+}
+
+#shoot{
+position:absolute;
+bottom:100px;
+right:40px;
+width:90px;
+height:90px;
+background:red;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+color:white;
+font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="crosshair">+</div>
+<div id="hud">HP:100</div>
+
+<div id="joystick">
+<div id="stick"></div>
+</div>
+
+<div id="shoot">FIRE</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+
+<script>
+
+// cena
+const scene = new THREE.Scene()
+
+const camera = new THREE.PerspectiveCamera(
+75,
+window.innerWidth/window.innerHeight,
+0.1,
+1000
+)
+
+const renderer = new THREE.WebGLRenderer({antialias:true})
+renderer.setSize(window.innerWidth,window.innerHeight)
+document.body.appendChild(renderer.domElement)
+
+// luz
+const sun = new THREE.DirectionalLight(0xffffff,1)
+sun.position.set(10,20,10)
+scene.add(sun)
+
+const ambient = new THREE.AmbientLight(0xffffff,0.6)
+scene.add(ambient)
+
+// chão
+const ground = new THREE.Mesh(
+new THREE.PlaneGeometry(200,200),
+new THREE.MeshStandardMaterial({color:0x228B22})
+)
+
+ground.rotation.x = -Math.PI/2
+scene.add(ground)
+
+// prédios
+for(let i=0;i<15;i++){
+
+let building = new THREE.Mesh(
+new THREE.BoxGeometry(5,10,5),
+new THREE.MeshStandardMaterial({color:0x888888})
+)
+
+building.position.set(
+(Math.random()-0.5)*80,
+5,
+(Math.random()-0.5)*80
+)
+
+scene.add(building)
+
+}
+
+// arma
+const gun = new THREE.Mesh(
+new THREE.BoxGeometry(0.3,0.2,1.5),
+new THREE.MeshStandardMaterial({color:0x222222})
+)
+
+gun.position.set(0.6,-0.5,-1)
+camera.add(gun)
+
+scene.add(camera)
+
+// inimigo
+const enemy = new THREE.Mesh(
+new THREE.BoxGeometry(1,2,1),
+new THREE.MeshStandardMaterial({color:0xff0000})
+)
+
+enemy.position.set(0,1,-20)
+
+scene.add(enemy)
+
+// estado
+let hp=100
+
+// joystick
+let joyX=0
+let joyY=0
+
+const stick = document.getElementById("stick")
+const joystick = document.getElementById("joystick")
+
+joystick.addEventListener("touchmove",e=>{
+
+let rect = joystick.getBoundingClientRect()
+
+let x = e.touches[0].clientX - rect.left - 60
+let y = e.touches[0].clientY - rect.top - 60
+
+joyX = x/40
+joyY = y/40
+
+stick.style.left=(x+30)+"px"
+stick.style.top=(y+30)+"px"
+
+})
+
+joystick.addEventListener("touchend",()=>{
+
+joyX=0
+joyY=0
+
+stick.style.left="30px"
+stick.style.top="30px"
+
+})
+
+// mirar com dedo
+let lastX=null
+
+document.addEventListener("touchmove",e=>{
+
+if(e.touches.length==1){
+
+if(lastX!=null){
+
+let dx = e.touches[0].clientX-lastX
+camera.rotation.y -= dx*0.005
+
+}
+
+lastX = e.touches[0].clientX
+
+}
+
+})
+
+document.addEventListener("touchend",()=>{
+lastX=null
+})
+
+// tiro
+document.getElementById("shoot").addEventListener("touchstart",()=>{
+
+// animação recuo
+gun.position.z +=0.2
+
+setTimeout(()=>{
+gun.position.z = -1
+},80)
+
+// detectar hit
+let raycaster = new THREE.Raycaster()
+
+raycaster.setFromCamera(
+new THREE.Vector2(0,0),
+camera
+)
+
+let hit = raycaster.intersectObject(enemy)
+
+if(hit.length>0){
+
+enemy.material.color.set(0xffff00)
+
+}
+
+})
+
+// movimento
+function updatePlayer(){
+
+let speed = 0.2
+
+camera.position.x += joyX*speed
+camera.position.z += joyY*speed
+
+}
+
+// inimigo segue jogador
+function updateEnemy(){
+
+let dir = new THREE.Vector3()
+
+dir.subVectors(camera.position,enemy.position)
+
+let dist = dir.length()
+
+dir.normalize()
+
+if(dist<50){
+
+enemy.position.add(dir.multiplyScalar(0.05))
+
+}
+
+if(dist<2){
+
+hp -=0.1
+
+}
+
+}
+
+// HUD
+function updateHUD(){
+
+document.getElementById("hud").innerHTML="HP:"+Math.floor(hp)
+
+}
+
+// loop
+function animate(){
+
+requestAnimationFrame(animate)
+
+updatePlayer()
+updateEnemy()
+updateHUD()
+
+renderer.render(scene,camera)
+
+}
+
+animate()
+
+</script>
+
+</body>
+</html>
