@@ -4,17 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#000000">
-    <title>Study App Dark Pro</title>
+    <title>Study App Ultra</title>
     
     <style>
         :root {
-            --primary: #00E5FF; /* Ciano vibrante */
+            --primary: #00E5FF;
             --success: #00C853;
             --danger: #FF5252;
-            --bg: #000000; /* Fundo Preto */
-            --card-bg: #121212; /* Cinza muito escuro */
+            --bg: #000000;
+            --card-bg: #121212;
             --text: #FFFFFF;
-            --accent: #FFD600; /* Amarelo para detalhes */
+            --accent: #FFD600;
+            --gray: #333333;
         }
 
         body {
@@ -25,206 +26,350 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden; /* Evita rolagem na tela inteira, rola só o conteúdo */
         }
 
         header {
             background: var(--card-bg);
             color: var(--primary);
             width: 100%;
-            padding: 1.5rem 0;
+            padding: 1rem 0;
             text-align: center;
-            box-shadow: 0 2px 15px rgba(0, 229, 255, 0.1);
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--gray);
+            z-index: 10;
         }
 
-        .container {
-            width: 90%;
-            max-width: 450px;
-            padding: 20px 0;
+        header h1 { margin: 0; font-size: 1.5rem; }
+
+        .main-content {
+            width: 100%;
+            max-width: 500px;
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 5%;
+            box-sizing: border-box;
+            padding-bottom: 80px; /* Espaço para o menu inferior */
         }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .card {
             background: var(--card-bg);
-            border-radius: 20px;
-            padding: 25px;
+            border-radius: 15px;
+            padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            text-align: center;
-            border: 1px solid #222;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid var(--gray);
         }
 
-        h2 { color: var(--accent); margin-top: 0; }
-
-        /* Estilo do Cronômetro Editável */
-        .timer-wrapper {
-            position: relative;
-            display: inline-block;
-            margin: 10px 0;
-        }
-
-        #timerDisplay {
-            font-size: 5rem;
-            font-weight: bold;
-            color: var(--primary);
-            font-variant-numeric: tabular-nums;
-            cursor: pointer;
-            border-bottom: 2px dashed #333;
-        }
-
-        #timerDisplay:hover {
-            color: var(--accent);
-        }
-
-        .edit-hint {
-            font-size: 0.8rem;
-            color: #666;
-            margin-bottom: 15px;
-        }
-
-        .timer-controls {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        button {
-            padding: 15px 25px;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        #startBtn { background: var(--success); color: white; flex: 2; }
-        #resetBtn { background: #333; color: white; flex: 1; }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        input {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #333;
-            background: #1e1e1e;
-            color: white;
-            border-radius: 12px;
-            outline: none;
-            font-size: 1rem;
-        }
-
+        /* --- Estilos do Cronômetro e Tarefas (Mantidos) --- */
+        #timerDisplay { font-size: 5rem; font-weight: bold; color: var(--primary); cursor: pointer; border-bottom: 2px dashed var(--gray); text-align: center; display: block; margin: 10px auto; }
+        .timer-controls { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { padding: 15px; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; flex: 1; color: white; }
+        .btn-success { background: var(--success); }
+        .btn-secondary { background: var(--gray); }
+        
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input { flex: 1; padding: 15px; border: 2px solid var(--gray); background: #1e1e1e; color: white; border-radius: 10px; outline: none; }
         input:focus { border-color: var(--primary); }
+        ul { list-style: none; padding: 0; }
+        li { background: #1e1e1e; padding: 15px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; border-left: 4px solid var(--primary); }
 
-        ul {
-            list-style: none;
-            padding: 0;
-            text-align: left;
+        /* --- Novos Estilos: Matérias e Questões --- */
+        .subject-btn {
+            background: #1e1e1e; color: white; border: 1px solid var(--gray);
+            padding: 20px; border-radius: 12px; font-size: 1.2rem; width: 100%;
+            margin-bottom: 10px; cursor: pointer; text-align: left; display: flex; justify-content: space-between;
         }
+        .subject-btn:hover { border-color: var(--primary); }
 
-        li {
-            background: #1e1e1e;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid var(--primary);
+        .question-header { display: flex; justify-content: space-between; color: var(--accent); font-size: 0.9rem; margin-bottom: 10px; font-weight: bold; }
+        .question-text { font-size: 1.1rem; line-height: 1.5; margin-bottom: 20px; }
+        
+        .option-row {
+            display: flex; gap: 10px; margin-bottom: 10px; align-items: center;
         }
+        .btn-eliminate {
+            background: transparent; border: 1px solid var(--gray); color: var(--danger);
+            border-radius: 8px; width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .btn-eliminate.active { background: var(--danger); color: white; }
+        
+        .option-text {
+            background: #1e1e1e; border: 1px solid var(--gray); padding: 15px; border-radius: 10px;
+            flex: 1; cursor: pointer; transition: 0.2s;
+        }
+        /* Efeito de eliminação */
+        .option-row.eliminated .option-text { text-decoration: line-through; opacity: 0.4; pointer-events: none; }
+        
+        /* Respostas */
+        .option-text.correct { background: var(--success); color: white; border-color: var(--success); }
+        .option-text.wrong { background: var(--danger); color: white; border-color: var(--danger); }
 
-        .delete-btn {
-            background: none;
-            border: none;
-            color: var(--danger);
-            font-size: 1.2rem;
-            cursor: pointer;
+        /* Navegação Inferior */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; background: var(--card-bg);
+            display: flex; justify-content: space-around; padding: 10px 0;
+            border-top: 1px solid var(--gray); z-index: 20; padding-bottom: calc(10px + env(safe-area-inset-bottom));
         }
+        .nav-item {
+            background: none; border: none; color: #888; font-size: 0.9rem;
+            display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer;
+        }
+        .nav-item.active { color: var(--primary); }
+        .nav-icon { font-size: 1.5rem; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Study App Dark</h1>
+        <h1>Study App Ultra</h1>
     </header>
 
-    <main class="container">
-        <section class="card">
-            <h2>⏱️ Foco</h2>
-            <div class="timer-wrapper">
+    <main class="main-content">
+        
+        <section id="tab-foco" class="tab-content active">
+            <div class="card">
+                <h2 style="color: var(--accent); margin-top:0;">⏱️ Pomodoro</h2>
                 <div id="timerDisplay" onclick="editTime()">25:00</div>
+                <p style="text-align:center; color:#666; font-size:0.8rem;">Clique no tempo para editar</p>
+                <div class="timer-controls">
+                    <button id="startBtn" class="btn btn-success" onclick="toggleTimer()">Iniciar</button>
+                    <button id="resetBtn" class="btn btn-secondary" onclick="resetTimer()">Resetar</button>
+                </div>
             </div>
-            <p class="edit-hint">Clique no número para ajustar os minutos</p>
-            
-            <div class="timer-controls">
-                <button id="startBtn" onclick="toggleTimer()">Iniciar</button>
-                <button id="resetBtn" onclick="resetTimer()">Resetar</button>
-            </div>
-            <audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
         </section>
 
-        <section class="card">
-            <h2>📚 Minhas Metas</h2>
-            <div class="input-group">
-                <input type="text" id="taskInput" placeholder="O que vamos estudar?">
-                <button onclick="addTask()" style="background: var(--primary); color: #000;">+</button>
+        <section id="tab-tarefas" class="tab-content">
+            <div class="card">
+                <h2 style="color: var(--accent); margin-top:0;">📚 Metas do Dia</h2>
+                <div class="input-group">
+                    <input type="text" id="taskInput" placeholder="O que vai estudar?">
+                    <button onclick="addTask()" class="btn btn-success" style="flex: 0 0 50px;">+</button>
+                </div>
+                <ul id="taskList"></ul>
             </div>
-            <ul id="taskList"></ul>
         </section>
+
+        <section id="tab-materias" class="tab-content">
+            <h2 style="color: var(--accent);">Escolha a Disciplina</h2>
+            <div id="subjectsList">
+                </div>
+        </section>
+
+        <section id="tab-questao" class="tab-content">
+            <button class="btn btn-secondary" style="margin-bottom: 15px;" onclick="switchTab('tab-materias')">⬅ Voltar</button>
+            <div class="card" id="questionContainer">
+                </div>
+            <button class="btn btn-success" style="width: 100%; margin-top: 10px; display: none;" id="nextQuestionBtn" onclick="loadNextQuestion()">Próxima Questão ➡</button>
+        </section>
+
     </main>
 
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('tab-foco', this)">
+            <span class="nav-icon">⏱️</span><span>Foco</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('tab-tarefas', this)">
+            <span class="nav-icon">📝</span><span>Tarefas</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('tab-materias', this)">
+            <span class="nav-icon">🧠</span><span>Questões</span>
+        </button>
+    </nav>
+
+    <audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+
     <script>
+        // ==========================================
+        // LÓGICA DE NAVEGAÇÃO (TABS)
+        // ==========================================
+        function switchTab(tabId, navElement = null) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            if(navElement) {
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                navElement.classList.add('active');
+            }
+        }
+
+        // ==========================================
+        // BANCO DE DADOS DE QUESTÕES (Exemplos Reais)
+        // ==========================================
+        const questionDatabase = {
+            "História": [
+                {
+                    fonte: "ENEM 2021",
+                    assunto: "Idade Contemporânea",
+                    enunciado: "Sempre que se evoca o tema da Revolução Industrial, a imagem que vem à mente é a da chaminé das fábricas expelindo fumaça... O texto indica que a Revolução Industrial trouxe como consequência sociológica:",
+                    alternativas: [
+                        "A) A melhoria das condições habitacionais.",
+                        "B) O avanço da regulamentação ambiental.",
+                        "C) O aumento da marginalização de trabalhadores.",
+                        "D) A estabilidade das antigas profissões.",
+                        "E) A redução da carga horária de trabalho."
+                    ],
+                    correta: 2 // Índice da resposta certa (C)
+                }
+            ],
+            "Matemática": [
+                {
+                    fonte: "ENEM 2020",
+                    assunto: "Estatística",
+                    enunciado: "O gerente de uma concessionária apresentou o gráfico de vendas de carros. Observou-se que a média de carros vendidos nos últimos 5 meses foi de 20 carros/mês. Sabendo que nos 4 primeiros meses venderam-se 15, 20, 25 e 10 carros, quantos foram vendidos no 5º mês?",
+                    alternativas: ["A) 15", "B) 20", "C) 25", "D) 30", "E) 35"],
+                    correta: 3 // Resposta certa (D)
+                },
+                {
+                    fonte: "Concurso IBGE",
+                    assunto: "Porcentagem",
+                    enunciado: "Um produto que custava R$ 80,00 sofreu um acréscimo de 20%. Qual o novo valor do produto?",
+                    alternativas: ["A) R$ 86,00", "B) R$ 90,00", "C) R$ 96,00", "D) R$ 100,00", "E) R$ 120,00"],
+                    correta: 2 // Resposta C
+                }
+            ]
+        };
+
+        // ==========================================
+        // LÓGICA DE QUESTÕES E ELIMINAÇÃO
+        // ==========================================
+        let currentSubject = "";
+        let currentQuestionIndex = 0;
+        let isQuestionAnswered = false;
+
+        // Renderizar lista de matérias
+        const subjectsList = document.getElementById('subjectsList');
+        for (const subject in questionDatabase) {
+            const btn = document.createElement('button');
+            btn.className = 'subject-btn';
+            btn.innerHTML = `<span>📚 ${subject}</span> <span style="color:var(--accent)">${questionDatabase[subject].length} Qs</span>`;
+            btn.onclick = () => openSubject(subject);
+            subjectsList.appendChild(btn);
+        }
+
+        function openSubject(subject) {
+            currentSubject = subject;
+            currentQuestionIndex = 0;
+            renderQuestion();
+            switchTab('tab-questao');
+        }
+
+        function renderQuestion() {
+            const container = document.getElementById('questionContainer');
+            const btnNext = document.getElementById('nextQuestionBtn');
+            const qData = questionDatabase[currentSubject][currentQuestionIndex];
+            isQuestionAnswered = false;
+            btnNext.style.display = 'none';
+
+            let optionsHtml = '';
+            qData.alternativas.forEach((opt, index) => {
+                optionsHtml += `
+                    <div class="option-row" id="row-${index}">
+                        <button class="btn-eliminate" onclick="toggleEliminate(${index})" title="Eliminar alternativa">🚫</button>
+                        <div class="option-text" id="opt-${index}" onclick="checkAnswer(${index}, ${qData.correta})">${opt}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="question-header">
+                    <span>${qData.fonte}</span>
+                    <span>Assunto: ${qData.assunto}</span>
+                </div>
+                <div class="question-text">${qData.enunciado}</div>
+                <div class="options-container">
+                    ${optionsHtml}
+                </div>
+                <p style="font-size: 0.8rem; color: #888; text-align: center; margin-top:15px;">Dica: Use o 🚫 para riscar as alternativas que você sabe que estão erradas!</p>
+            `;
+        }
+
+        function toggleEliminate(index) {
+            if (isQuestionAnswered) return; // Não deixa eliminar se já respondeu
+            const row = document.getElementById(`row-${index}`);
+            row.classList.toggle('eliminated');
+        }
+
+        function checkAnswer(selectedIndex, correctIndex) {
+            if (isQuestionAnswered) return;
+            
+            // Verifica se a linha foi eliminada (não deixa clicar)
+            if (document.getElementById(`row-${selectedIndex}`).classList.contains('eliminated')) return;
+
+            isQuestionAnswered = true;
+            
+            const selectedEl = document.getElementById(`opt-${selectedIndex}`);
+            const correctEl = document.getElementById(`opt-${correctIndex}`);
+
+            if (selectedIndex === correctIndex) {
+                selectedEl.classList.add('correct');
+            } else {
+                selectedEl.classList.add('wrong');
+                correctEl.classList.add('correct'); // Mostra qual era a certa
+            }
+
+            // Exibe o botão de próxima questão se houver mais
+            if (currentQuestionIndex < questionDatabase[currentSubject].length - 1) {
+                document.getElementById('nextQuestionBtn').style.display = 'block';
+            } else {
+                document.getElementById('nextQuestionBtn').style.display = 'block';
+                document.getElementById('nextQuestionBtn').textContent = 'Finalizar Matéria 🎉';
+                document.getElementById('nextQuestionBtn').onclick = () => {
+                    alert('Você concluiu as questões de ' + currentSubject);
+                    switchTab('tab-materias');
+                    // Reset botão
+                    document.getElementById('nextQuestionBtn').textContent = 'Próxima Questão ➡';
+                    document.getElementById('nextQuestionBtn').onclick = loadNextQuestion;
+                };
+            }
+        }
+
+        function loadNextQuestion() {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+
+        // ==========================================
+        // LÓGICA DO CRONÔMETRO E TAREFAS (Mantida)
+        // ==========================================
         let defaultMinutes = 25;
         let timeLeft = defaultMinutes * 60;
         let timerId = null;
 
-        const timerDisplay = document.getElementById('timerDisplay');
-        const startBtn = document.getElementById('startBtn');
-        const alarmSound = document.getElementById('alarmSound');
-
         function updateDisplay() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            document.getElementById('timerDisplay').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
         function editTime() {
-            if (timerId) return; // Não deixa editar enquanto corre
-            
-            const newTime = prompt("Digite os minutos (ex: 10, 45, 60):", Math.floor(timeLeft / 60));
-            if (newTime !== null && !isNaN(newTime) && newTime > 0) {
+            if (timerId) return; 
+            const newTime = prompt("Minutos (ex: 30):", Math.floor(timeLeft / 60));
+            if (newTime && !isNaN(newTime) && newTime > 0) {
                 defaultMinutes = parseInt(newTime);
                 timeLeft = defaultMinutes * 60;
                 updateDisplay();
             }
         }
 
-        function playAlarm() {
-            alarmSound.play().catch(e => console.warn("Som bloqueado."));
-        }
-
         function toggleTimer() {
+            const startBtn = document.getElementById('startBtn');
             if (timerId) {
-                clearInterval(timerId);
-                timerId = null;
-                startBtn.textContent = 'Continuar';
-                startBtn.style.background = "var(--success)";
+                clearInterval(timerId); timerId = null;
+                startBtn.textContent = 'Continuar'; startBtn.style.background = "var(--success)";
             } else {
-                startBtn.textContent = 'Pausar';
-                startBtn.style.background = "#FF9800";
+                startBtn.textContent = 'Pausar'; startBtn.style.background = "#FF9800";
                 timerId = setInterval(() => {
-                    if (timeLeft > 0) {
-                        timeLeft--;
-                        updateDisplay();
-                    } else {
-                        clearInterval(timerId);
-                        timerId = null;
+                    if (timeLeft > 0) { timeLeft--; updateDisplay(); } 
+                    else {
+                        clearInterval(timerId); timerId = null;
                         startBtn.textContent = 'Iniciar';
-                        playAlarm();
+                        document.getElementById('alarmSound').play().catch(e=>console.log(e));
                         alert('Tempo esgotado!');
                     }
                 }, 1000);
@@ -232,30 +377,26 @@
         }
 
         function resetTimer() {
-            clearInterval(timerId);
-            timerId = null;
-            timeLeft = defaultMinutes * 60;
-            updateDisplay();
-            startBtn.textContent = 'Iniciar';
-            startBtn.style.background = "var(--success)";
+            clearInterval(timerId); timerId = null;
+            timeLeft = defaultMinutes * 60; updateDisplay();
+            document.getElementById('startBtn').textContent = 'Iniciar';
+            document.getElementById('startBtn').style.background = "var(--success)";
         }
 
         function addTask() {
             const input = document.getElementById('taskInput');
-            const taskList = document.getElementById('taskList');
             if (input.value.trim() === '') return;
             const li = document.createElement('li');
-            li.innerHTML = `<span>${input.value}</span><button class="delete-btn" onclick="this.parentElement.remove()">✕</button>`;
-            taskList.appendChild(li);
+            li.innerHTML = `<span>${input.value}</span><button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="this.parentElement.remove()">✕</button>`;
+            document.getElementById('taskList').appendChild(li);
             input.value = '';
         }
 
-        // PWA Service Worker (Inline)
+        // PWA Service Worker
         if ('serviceWorker' in navigator) {
             const swCode = "self.addEventListener('fetch', function(event) {});";
             const blob = new Blob([swCode], {type: 'text/javascript'});
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl).catch(() => {});
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
         }
     </script>
 </body>
